@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	fmt.Printf("Hello Worlds")
+	fmt.Printf("Starting Server...\n")
 	http.HandleFunc("/", getRoot)
 	http.HandleFunc("/Hello", GetHello)
 	http.ListenAndServe(":1234", nil)
@@ -15,12 +15,15 @@ func main() {
 }
 func getRoot(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("got / request\n")
-	io.WriteString(w, "This is my website!\n")
+	switch r.Method {
+	case "POST":
+
+	case "GET":
+
+	}
 }
 func GetHello(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("Hello World")
 	io.WriteString(w, "Hello\n")
 
 }
-
-// test comment
