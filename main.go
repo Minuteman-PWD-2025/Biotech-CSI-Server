@@ -1,5 +1,6 @@
 package main
 
+//this is in need of error handling in some places
 import (
 	"encoding/json"
 	"fmt"
@@ -30,6 +31,9 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "POST":
+
+		//Optimize this to check for deletion before doing the writing
+		//Actually, by writing before deleting, it automatically handles the possible issue of the file to delete not existing, so that is nice
 		fmt.Println("Got A post")
 
 		reqBody, err := ioutil.ReadAll(r.Body)
@@ -42,8 +46,10 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 		}
 
 		os.WriteFile("./Data/"+r.FormValue("id")+".json", []byte(data), 0644)
-		//Check if the file already exists, and if it does, "modify"(1) it, else, create and write to it
-
+		//For removing from the dat
+		if r.FormValue("Deletion") == "Yes" {
+			os.Remove("./Data/" + r.FormValue("id") + ".json")
+		}
 	case "GET":
 		if r.FormValue("id") != "" {
 			//Read Json from the file requested
@@ -62,5 +68,3 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 
 	}
 }
-
-//(1) Actually just rewrite the file with new data, and keeping old data. Query kit for more info.
