@@ -11,14 +11,6 @@ import (
 	"os"
 )
 
-type Data struct {
-	Name         string
-	IsCheckedOut bool
-	CheckedOutBy string
-	TimeOut      string
-	Note         string
-}
-
 func main() {
 	//Currently can only get the server working on 8080
 	fmt.Printf("Starting Server...\n")
@@ -59,7 +51,7 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 		} else {
 			if doesAlreadyExist { //uh oh, you are trying to creat a new file that already exists
 				//Replace with some proc for confirmation
-				fmt.Println("This file already exists, would you like to edit it instead?")
+
 				os.WriteFile("./Data/"+r.FormValue("id")+".json", []byte(data), 0644)
 
 			} else { //You are creating a new file that does not exist yet, so go ahead with it
@@ -75,20 +67,21 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		if r.FormValue("id") != "" {
 			//Read Json from the file requested, based on id
-			content, err := os.ReadFile("./Data/" + string(r.FormValue("id")) + ".json")
-			fmt.Printf(r.FormValue("id") + "\n")
-			if err != nil {
-				log.Fatal("Error when opening file: ", err)
-			}
-			//Convert it to stringstuff
-			var payload Data
-			err = json.Unmarshal(content, &payload)
-			if err != nil {
-				log.Fatal("Error during Unmarshal(): ", err)
-			}
+
 			//This line isnt needed and will be removed in my next push
 			//io.WriteString(w, payload.Name)
+			//f, err := os.Open()
+			http.ServeFile(w, r, "./Data/"+string(r.FormValue("id"))+".json")
 		}
+		if r.FormValue("WhichKey") != "" {
+			TargetCultures := GetAllRowsWithVal(r)
+			fmt.Println("Got Got")
+			fmt.Println(TargetCultures)
+			os.WriteFile("QuickData", []byte(TargetCultures), 0644)
+			http.ServeFile(w, r, "QuickData")
+			os.Remove("QuickData")
+		}
+		//Get all the items with a matching
 
 	}
 }
@@ -103,4 +96,37 @@ func AffirmExistanceOfFile(r *http.Request) bool {
 		panic("What are you doing here how did you Schrodinger")
 
 	}
+}
+func GetAllRowsWithVal(r *http.Request) string { //Just return it all for a string right now
+	if r.FormValue("TargetKey") != "" {
+		//This is ugly rn, but I can figure out a workaround later
+		alls := ""
+		dir, err := os.ReadDir("./Data")
+		if err != nil {
+			panic(err)
+		}
+
+		for _, e := range dir {
+
+			content, err := os.ReadFile("./Data/" + string(e.Name()))
+			fmt.Println(content)
+			if err != nil {
+				log.Fatal("Error when opening file: ", err)
+			}
+
+			var payload map[string]string
+			err = json.Unmarshal(content, &payload)
+			if err != nil {
+				log.Fatal("Error during Unmarshal(): ", err)
+			}
+			if payload[r.FormValue("WhichKey")] == r.FormValue("TargetKey") {
+				alls += payload["name"] + "\n"
+			}
+
+		}
+
+		return alls
+
+	}
+	return "How did you get here"
 }

@@ -1,7 +1,7 @@
 {
-	"name": "ChangedSendie",
+	"name": "ChangedSendie3",
 	"isCheckedOut": "false",
-	"checkedOutBy": "NewStudent",
+	"checkedOutBy": "NewerStudent",
 	"timeOut": "12:00",
 	"note": ""
 
