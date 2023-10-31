@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -32,11 +31,10 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
 
-		
 		//by writing before deleting, it automatically handles the possible issue of the file to delete not existing, so that is nice
 		fmt.Println("Got A post")
 
-		reqBody, err := ioutil.ReadAll(r.Body)
+		reqBody, err := io.ReadAll(r.Body)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -53,7 +51,7 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		if r.FormValue("id") != "" {
 			//Read Json from the file requested, based on id
-			content, err := ioutil.ReadFile("./Data/" + string(r.FormValue("id")) + ".json")
+			content, err := os.ReadFile("./Data/" + string(r.FormValue("id")) + ".json")
 			fmt.Printf(r.FormValue("id") + "\n")
 			if err != nil {
 				log.Fatal("Error when opening file: ", err)
