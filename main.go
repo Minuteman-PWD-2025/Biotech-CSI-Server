@@ -43,20 +43,29 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 		for i := 0; i < int(r.ContentLength); i++ {
 			data += string(int(reqBody[i]))
 		}
-
-		//Creates or updates the file
-		os.WriteFile("./Data/"+r.FormValue("id")+".json", []byte(data), 0644)
-
+		isEdit := r.FormValue("Edit")
 		doesAlreadyExist := AffirmExistanceOfFile(r)
 		fmt.Println(doesAlreadyExist)
+		if isEdit == "true" {
+			if doesAlreadyExist { //Means you are editing a file that exists so everything is ok
+				//On the frontend we will need to grab the data of the file, and then fill it in, such that they only need to edit things
 
-		if doesAlreadyExist {
-			//Need something to proc for confirmation here
-			fmt.Println("Already Exists!")
-			os.WriteFile("./Data/"+r.FormValue("id")+".json", []byte(data), 0644)
+				os.WriteFile("./Data/"+r.FormValue("id")+".json", []byte(data), 0644)
 
+			} else { //Uh oh, the file does not exist, will ask if you want to create it
+				fmt.Println("This file does not exist yet")
+				os.WriteFile("./Data/"+r.FormValue("id")+".json", []byte(data), 0644)
+			}
 		} else {
-			os.WriteFile("./Data/"+r.FormValue("id")+".json", []byte(data), 0644)
+			if doesAlreadyExist { //uh oh, you are trying to creat a new file that already exists
+				//Replace with some proc for confirmation
+				fmt.Println("This file already exists, would you like to edit it instead?")
+				os.WriteFile("./Data/"+r.FormValue("id")+".json", []byte(data), 0644)
+
+			} else { //You are creating a new file that does not exist yet, so go ahead with it
+
+				os.WriteFile("./Data/"+r.FormValue("id")+".json", []byte(data), 0644)
+			}
 		}
 
 		//For removing from the dat
