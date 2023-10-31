@@ -3,6 +3,7 @@ package main
 //this is in need of error handling in some places
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -42,10 +43,24 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 		for i := 0; i < int(r.ContentLength); i++ {
 			data += string(int(reqBody[i]))
 		}
+
 		//Creates or updates the file
 		os.WriteFile("./Data/"+r.FormValue("id")+".json", []byte(data), 0644)
+
+		doesAlreadyExist := AffirmExistanceOfFile(r)
+		fmt.Println(doesAlreadyExist)
+
+		if doesAlreadyExist {
+			//Need something to proc for confirmation here
+			fmt.Println("Already Exists!")
+			os.WriteFile("./Data/"+r.FormValue("id")+".json", []byte(data), 0644)
+
+		} else {
+			os.WriteFile("./Data/"+r.FormValue("id")+".json", []byte(data), 0644)
+		}
+
 		//For removing from the dat
-		if r.FormValue("Deletion") == "Yes" {
+		if r.FormValue("Deletion") == "true" {
 			os.Remove("./Data/" + r.FormValue("id") + ".json")
 		}
 	case "GET":
@@ -63,8 +78,20 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 				log.Fatal("Error during Unmarshal(): ", err)
 			}
 			//This line isnt needed and will be removed in my next push
-			io.WriteString(w, payload.Name)
+			//io.WriteString(w, payload.Name)
 		}
+
+	}
+}
+func AffirmExistanceOfFile(r *http.Request) bool {
+	if _, err := os.Stat("./Data/" + r.FormValue("id") + ".json"); err == nil {
+		return true
+
+	} else if errors.Is(err, os.ErrNotExist) {
+		return false
+
+	} else {
+		panic("What are you doing here how did you Schrodinger")
 
 	}
 }
