@@ -33,6 +33,7 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 		}
 		data := ""
 		for i := 0; i < int(r.ContentLength); i++ {
+
 			data += string(int(reqBody[i]))
 		}
 		isEdit := r.FormValue("Edit")
@@ -74,9 +75,11 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 			http.ServeFile(w, r, "./Data/"+string(r.FormValue("id"))+".json")
 		}
 		if r.FormValue("WhichKey") != "" {
+			//Any special keywords will be in all caps and enclosed in pipes
+			if r.FormValue("TargetKey") == "|ALL|" {
+
+			}
 			TargetCultures := GetAllRowsWithVal(r)
-			fmt.Println("Got Got")
-			fmt.Println(TargetCultures)
 			os.WriteFile("QuickData", []byte(TargetCultures), 0644)
 			http.ServeFile(w, r, "QuickData")
 			os.Remove("QuickData")
@@ -99,32 +102,58 @@ func AffirmExistanceOfFile(r *http.Request) bool {
 }
 func GetAllRowsWithVal(r *http.Request) string { //Just return it all for a string right now
 	if r.FormValue("TargetKey") != "" {
-		//This is ugly rn, but I can figure out a workaround later
 		alls := ""
-		dir, err := os.ReadDir("./Data")
-		if err != nil {
-			panic(err)
-		}
-
-		for _, e := range dir {
-
-			content, err := os.ReadFile("./Data/" + string(e.Name()))
-			fmt.Println(content)
+		if r.FormValue("TargetKey") != "|ALL|" {
+			dir, err := os.ReadDir("./Data")
 			if err != nil {
-				log.Fatal("Error when opening file: ", err)
+				panic(err)
 			}
 
-			var payload map[string]string
-			err = json.Unmarshal(content, &payload)
+			for _, e := range dir {
+
+				content, err := os.ReadFile("./Data/" + string(e.Name()))
+
+				if err != nil {
+					log.Fatal("Error when opening file: ", err)
+				}
+
+				var payload map[string]string
+				err = json.Unmarshal(content, &payload)
+				if err != nil {
+					log.Fatal("Error during Unmarshal(): ", err)
+				}
+				if payload[r.FormValue("WhichKey")] == r.FormValue("TargetKey") {
+					alls += payload["name"] + "\n"
+				}
+
+			}
+		} else {
+			dir, err := os.ReadDir("./Data")
 			if err != nil {
-				log.Fatal("Error during Unmarshal(): ", err)
-			}
-			if payload[r.FormValue("WhichKey")] == r.FormValue("TargetKey") {
-				alls += payload["name"] + "\n"
+				panic(err)
 			}
 
+			for _, e := range dir {
+
+				content, err := os.ReadFile("./Data/" + string(e.Name()))
+
+				if err != nil {
+					log.Fatal("Error when opening file: ", err)
+				}
+
+				var payload map[string]string
+				err = json.Unmarshal(content, &payload)
+				if err != nil {
+					log.Fatal("Error during Unmarshal(): ", err)
+				}
+
+				alls += payload[r.FormValue("WhichKey")] + "\n"
+
+			}
 		}
-
+		if alls == "" {
+			alls = "No Matches Found\n"
+		}
 		return alls
 
 	}
