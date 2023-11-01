@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 )
@@ -25,8 +24,10 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 		// Read the request body
 		reqBody, err := io.ReadAll(r.Body)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println("error reading POST: " + err.Error())
+			return
 		}
+
 		data := ""
 		for i := 0; i < int(r.ContentLength); i++ {
 			data += string(int(reqBody[i]))
@@ -34,7 +35,12 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 
 		// Check if it's an edit request and if the file already exists
 		isEdit := r.FormValue("Edit")
-		doesAlreadyExist := AffirmExistanceOfFile(r)
+		doesAlreadyExist, err := AffirmExistanceOfFile(r)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
 		fmt.Println(doesAlreadyExist)
 
 		if isEdit == "true" {
@@ -71,36 +77,42 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 			if r.FormValue("TargetKey") == "|ALL|" {
 				// Handle special keyword
 			}
-			TargetCultures := GetAllRowsWithVal(r)
+			TargetCultures, err := GetAllRowsWithVal(r)
+			if err != nil {
+				fmt.Println("error getting rows: " + err.Error())
+			}
 			os.WriteFile("QuickData", []byte(TargetCultures), 0644)
 			http.ServeFile(w, r, "QuickData")
-			os.Remove("QuickData")
+			err = os.Remove("QuickData")
+			if err != nil {
+				fmt.Println("error removing file 'QuickData'")
+			}
 		}
 	}
 }
 
-func AffirmExistanceOfFile(r *http.Request) bool {
+func AffirmExistanceOfFile(r *http.Request) (bool, error) {
 	// Check if a file exists
 	if _, err := os.Stat("./Data/" + r.FormValue("id") + ".json"); err == nil {
-		return true
+		return true, nil
 	} else if errors.Is(err, os.ErrNotExist) {
-		return false
+		return false, nil
 	} else {
-		panic("Unexpected error occurred")
+		return false, errors.New("error locating file: " + err.Error())
 	}
 }
 
-func GetAllRowsWithVal(r *http.Request) string {
+func GetAllRowsWithVal(r *http.Request) (string, error) {
 	// Check if the "TargetKey" query parameter is provided in the request
 	if r.FormValue("TargetKey") != "" {
-		alls := "" // Initialize an empty string to store the results
+		results := "" // Initialize an empty string to store the results
 
 		// Check if the "TargetKey" is not "|ALL|"
 		if r.FormValue("TargetKey") != "|ALL|" {
 			// Read the list of files in the 'Data' directory
 			dir, err := os.ReadDir("./Data")
 			if err != nil {
-				panic(err)
+				return results, errors.New("error reading directory './Data'\nerr: " + err.Error())
 			}
 
 			// Iterate through the files in the directory
@@ -108,27 +120,27 @@ func GetAllRowsWithVal(r *http.Request) string {
 				// Read the content of each file
 				content, err := os.ReadFile("./Data/" + string(e.Name()))
 				if err != nil {
-					log.Fatal("Error when opening file: ", err)
+					return results, errors.New("error reading file './Data/" + string(e.Name()) + "'\nerr: " + err.Error())
 				}
 
 				// Parse the JSON content into a map
 				var payload map[string]string
 				err = json.Unmarshal(content, &payload)
 				if err != nil {
-					log.Fatal("Error during Unmarshal(): ", err)
+					return results, errors.New("error unmarshalling datafile './Data/" + string(e.Name()) + "'\nerr: " + err.Error())
 				}
 
 				// Check if the value of "WhichKey" matches the "TargetKey"
 				if payload[r.FormValue("WhichKey")] == r.FormValue("TargetKey") {
 					// Append the "name" value from the JSON data to the result string
-					alls += payload["name"] + "\n"
+					results += payload["name"] + "\n"
 				}
 			}
 		} else {
 			// If "TargetKey" is "|ALL|", retrieve all values of "WhichKey"
 			dir, err := os.ReadDir("./Data")
 			if err != nil {
-				panic(err)
+				return results, errors.New("error reading directory './Data'\nerr: " + err.Error())
 			}
 
 			// Iterate through the files in the directory
@@ -136,28 +148,28 @@ func GetAllRowsWithVal(r *http.Request) string {
 				// Read the content of each file
 				content, err := os.ReadFile("./Data/" + string(e.Name()))
 				if err != nil {
-					log.Fatal("Error when opening file: ", err)
+					return results, errors.New("error reading datafile: './Data/" + string(e.Name()) + "'\nerr: " + err.Error())
 				}
 
 				// Parse the JSON content into a map
 				var payload map[string]string
 				err = json.Unmarshal(content, &payload)
 				if err != nil {
-					log.Fatal("Error during Unmarshal(): ", err)
+					return results, errors.New("error unmarshalling file './Data/" + string(e.Name()) + "'\nerr: " + err.Error())
 				}
 
 				// Append the value of "WhichKey" from the JSON data to the result string
-				alls += payload[r.FormValue("WhichKey")] + "\n"
+				results += payload[r.FormValue("WhichKey")] + "\n"
 			}
 		}
 
 		// Check if any matches were found, if not, return a message
-		if alls == "" {
-			alls = "No Matches Found\n"
+		if results == "" {
+			return results, errors.New("no matches found")
 		}
-		return alls
+		return results, nil
 	}
 
 	// Return an "Invalid request" message if "TargetKey" is not provided in the request
-	return "Invalid request"
+	return "", errors.New("invalid request")
 }
