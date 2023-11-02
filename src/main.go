@@ -1,23 +1,26 @@
 package main
 
 import (
-	"crypto/rand"
-	"encoding/base32"
 	"fmt"
 	"net/http"
 )
 
 var users map[string]string
+var tokens []string
 
 func main() {
-	dosmt()
+	users = make(map[string]string)
+
+	users = map[string]string{
+		"email":     "pass",
+		"ibroomell": "1234",
+		"dledger":   "1234",
+	}
 
 	// Start the HTTP server on port 8080
 	fmt.Printf("Starting Server...\n")
-	http.HandleFunc("/", getRoot)
+	http.HandleFunc("/api", getRoot)
 	http.ListenAndServe(":8080", nil)
-
-	users = make(map[string]string)
 }
 
 func getRoot(w http.ResponseWriter, r *http.Request) {
@@ -27,23 +30,30 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 
 	case "GET":
 		fmt.Println("recieved get request")
-	}
-}
 
-// Add password encryption
-func ValidateLogin(email string, pass string) (string, error) {
-	_, exists := users[email]
-	if !exists {
-		users[email] = pass
-	}
-	return "", nil
-}
+		if r.FormValue("email") != "" && r.FormValue("password") != "" {
+			email := r.FormValue("email")
+			password := r.FormValue("password")
 
-func GenerateToken(length int) (string, error) {
-	randomBytes := make([]byte, 32)
-	_, err := rand.Read(randomBytes)
-	if err != nil {
-		return "", err
+			var err error
+
+			fmt.Print("tokens before login: ")
+			fmt.Println(tokens)
+
+			fmt.Print("users: ")
+			fmt.Println(users)
+
+			tokens, err = ValidateLogin(users, tokens, email, password)
+			if err != nil {
+				fmt.Println("error logging in: " + err.Error())
+				return
+			}
+
+			fmt.Print("tokens after login: ")
+			for i := 0; i < len(tokens); i++ {
+				fmt.Print(tokens[i] + " ")
+			}
+			fmt.Println("")
+		}
 	}
-	return base32.StdEncoding.EncodeToString(randomBytes)[:length], nil
 }
