@@ -26,17 +26,18 @@ func testConnection() error {
 
 	defer db.Close()
 
-	var rows []string
-
-	query, err := db.Query("SELECT * FROM people;")
+	rows, err := db.Query("SELECT * FROM people;")
 
 	if err != nil {
 		panic(err)
 	}
 
-	query.Scan(&rows)
-
-	fmt.Printf("Found rows: %s \n", rows)
+	var id string
+	var name string
+	for rows.Next() {
+		rows.Scan(&id, &name)
+		fmt.Printf("ID: %s\nName: %s\n\n", id, name)
+	}
 
 	return err
 }
