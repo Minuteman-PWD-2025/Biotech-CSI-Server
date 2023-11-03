@@ -9,6 +9,8 @@ var users map[string]string
 var tokens []string
 
 func main() {
+	testConnection()
+
 	users = make(map[string]string)
 
 	users = map[string]string{
