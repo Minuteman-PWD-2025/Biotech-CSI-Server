@@ -11,10 +11,11 @@ import (
 
 var db_name = os.Getenv("db_name")
 var db_user = os.Getenv("db_user")
+var db_pass = os.Getenv("db_pass")
 
 func testConnection() error {
 	fmt.Printf("Testing Connection to Database...\n")
-	connStr := fmt.Sprintf("user=%s dbname=%s sslmode=verify-full", db_user, db_name)
+	connStr := fmt.Sprintf("user=%s dbname=%s password=%s sslmode=disable", db_user, db_name, db_pass)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return err
