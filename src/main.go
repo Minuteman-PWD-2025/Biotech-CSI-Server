@@ -32,30 +32,53 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 
 	case "GET":
 		fmt.Println("recieved get request")
+		if r.FormValue("token") != "" {
+			if r.FormValue("table") != "" {
+				err, db := testConnection()
+				if err != nil {
+					panic(err)
+				}
+				rows := GetTable(r.FormValue("table"), db)
+				//#region Placeholder
+				var user_id string
+				var name string
 
-		if r.FormValue("email") != "" && r.FormValue("password") != "" {
-			email := r.FormValue("email")
-			password := r.FormValue("password")
+				for rows.Next() {
+					rows.Scan(&user_id, &name)
+					fmt.Printf("ID: %s\nName: %s\n\n", user_id, name)
+				}
 
-			var err error
-
-			fmt.Print("tokens before login: ")
-			fmt.Println(tokens)
-
-			fmt.Print("users: ")
-			fmt.Println(users)
-
-			tokens, err = ValidateLogin(users, tokens, email, password)
-			if err != nil {
-				fmt.Println("error logging in: " + err.Error())
-				return
+				//#endregion
 			}
+		} else {
+			if r.FormValue("email") != "" && r.FormValue("password") != "" {
+				email := r.FormValue("email")
+				password := r.FormValue("password")
 
-			fmt.Print("tokens after login: ")
-			for i := 0; i < len(tokens); i++ {
-				fmt.Print(tokens[i] + " ")
+				var err error
+
+				fmt.Print("tokens before login: ")
+				fmt.Println(tokens)
+
+				fmt.Print("users: ")
+				fmt.Println(users)
+
+				tokens, err = ValidateLogin(users, tokens, email, password)
+				if err != nil {
+					fmt.Println("error logging in: " + err.Error())
+					return
+				}
+
+				fmt.Print("tokens after login: ")
+				for i := 0; i < len(tokens); i++ {
+					fmt.Print(tokens[i] + " ")
+				}
+				fmt.Println("")
 			}
-			fmt.Println("")
 		}
+
+		//Authentication
+
 	}
+
 }
