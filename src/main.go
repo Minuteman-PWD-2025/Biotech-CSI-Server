@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 var users map[string]string
@@ -31,12 +32,25 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		fmt.Println("recieved post request")
 		if r.FormValue("token") != "" {
-			if r.FormValue("table") != "" && r.FormValue("columns") != "" && r.FormValue("data") != "" {
+			if r.FormValue("table") != "" && r.FormValue("insert") != "" {
+				table := r.FormValue("table")
+				dat := (r.FormValue("insert"))
+				splitDat := strings.Split(dat, "|")
+				finStringC := "("
+				finStringV := "("
 
-				table := (r.FormValue("table"))
-				cols := (r.FormValue("columns"))
-				dat := (r.FormValue("data"))
-				AddNew(table, db, cols, dat)
+				for i := 0; i < len(splitDat); i++ {
+					if i < len(splitDat)-1 {
+						finStringC += strings.Split(splitDat[i], ",")[0] + ", "
+						finStringV += strings.Split(splitDat[i], ",")[1] + ", "
+					} else {
+						finStringC += strings.Split(splitDat[i], ",")[0] + ")"
+						finStringV += strings.Split(splitDat[i], ",")[1] + ")"
+					}
+
+				}
+
+				AddNew(table, db, finStringC, finStringV)
 			}
 		}
 
