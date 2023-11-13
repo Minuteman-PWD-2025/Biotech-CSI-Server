@@ -26,15 +26,25 @@ func main() {
 }
 
 func getRoot(w http.ResponseWriter, r *http.Request) {
+	err, db := testConnection()
 	switch r.Method {
 	case "POST":
 		fmt.Println("recieved post request")
+		if r.FormValue("token") != "" {
+			if r.FormValue("table") != "" && r.FormValue("columns") != "" && r.FormValue("data") != "" {
+
+				table := (r.FormValue("table"))
+				cols := (r.FormValue("columns"))
+				dat := (r.FormValue("data"))
+				AddNew(table, db, cols, dat)
+			}
+		}
 
 	case "GET":
 		fmt.Println("recieved get request")
 		if r.FormValue("token") != "" {
 			if r.FormValue("table") != "" {
-				err, db := testConnection()
+
 				if err != nil {
 					panic(err)
 				}

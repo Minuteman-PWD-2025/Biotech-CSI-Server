@@ -48,3 +48,10 @@ func GetTable(WhichTable string, db *sql.DB) sql.Rows {
 	}
 	return *rows
 }
+func AddNew(WhichTable string, db *sql.DB, Columns string, Data string) sql.Rows {
+	rows, err := db.Query("INSERT INTO " + WhichTable + Columns + "\nVALUES " + Data)
+	if err != nil {
+		panic(err)
+	}
+	return *rows
+}
