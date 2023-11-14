@@ -72,27 +72,27 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			if r.FormValue("token") != "" {
-				if r.FormValue("table") != "" && r.FormValue("insert") != "" {
-					table := r.FormValue("table")
-					dat := (r.FormValue("insert"))
-					splitDat := strings.Split(dat, "|")
-					finStringC := "("
-					finStringV := "("
+		}
+		if r.FormValue("token") != "" {
+			if r.FormValue("table") != "" && r.FormValue("insert") != "" {
+				table := r.FormValue("table")
+				dat := (r.FormValue("insert"))
+				splitDat := strings.Split(dat, "|")
+				finStringC := "("
+				finStringV := "("
 
-					for i := 0; i < len(splitDat); i++ {
-						if i < len(splitDat)-1 {
-							finStringC += strings.Split(splitDat[i], ",")[0] + ", "
-							finStringV += strings.Split(splitDat[i], ",")[1] + ", "
-						} else {
-							finStringC += strings.Split(splitDat[i], ",")[0] + ")"
-							finStringV += strings.Split(splitDat[i], ",")[1] + ")"
-						}
-
+				for i := 0; i < len(splitDat); i++ {
+					if i < len(splitDat)-1 {
+						finStringC += strings.Split(splitDat[i], ",")[0] + ", "
+						finStringV += strings.Split(splitDat[i], ",")[1] + ", "
+					} else {
+						finStringC += strings.Split(splitDat[i], ",")[0] + ")"
+						finStringV += strings.Split(splitDat[i], ",")[1] + ")"
 					}
 
-					AddNew(table, finStringC, finStringV)
 				}
+
+				AddNew(table, finStringC, finStringV)
 			}
 		}
 
@@ -146,7 +146,13 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 		where := r.FormValue("where")
 		indivWhere := strings.Split(where, "|")
 		AlterThing(r.FormValue("table"), indivUpdate, indivWhere)
+
 		//Authentication
+	case "DELETE":
+		table := r.FormValue("table")
+		del := r.FormValue("where")
+		indivDells := strings.Split(del, "|")
+		DeleteRow(table, indivDells)
 
 	}
 

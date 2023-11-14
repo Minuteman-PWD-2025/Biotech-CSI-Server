@@ -86,3 +86,11 @@ func AlterThing(WhichTable string, allUpdates []string, allWheres []string) {
 	}
 
 }
+func DeleteRow(WhichTable string, allWheres []string) {
+	for i := 0; i < len(allWheres); i++ {
+		splitInTwain := strings.Split(allWheres[i], ",")
+		qStr := "DELETE FROM " + WhichTable + "\nWHERE " + splitInTwain[0] + splitInTwain[1] + ";"
+		fmt.Print(qStr)
+		db.Query(qStr)
+	}
+}
