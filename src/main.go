@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"time"
 	"strings"
+	"time"
 )
 
 var users map[string]string
@@ -55,8 +55,8 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
 		log("recieved post request")
-    
-    // if email and password provided in url query
+
+		// if email and password provided in url query
 		if r.FormValue("email") != "" && r.FormValue("password") != "" {
 			// initialize email and password as query values
 			email := r.FormValue("email")
@@ -70,27 +70,29 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log("error logging in: " + err.Error())
 				return
-        
-		if r.FormValue("token") != "" {
-			if r.FormValue("table") != "" && r.FormValue("insert") != "" {
-				table := r.FormValue("table")
-				dat := (r.FormValue("insert"))
-				splitDat := strings.Split(dat, "|")
-				finStringC := "("
-				finStringV := "("
+			}
 
-				for i := 0; i < len(splitDat); i++ {
-					if i < len(splitDat)-1 {
-						finStringC += strings.Split(splitDat[i], ",")[0] + ", "
-						finStringV += strings.Split(splitDat[i], ",")[1] + ", "
-					} else {
-						finStringC += strings.Split(splitDat[i], ",")[0] + ")"
-						finStringV += strings.Split(splitDat[i], ",")[1] + ")"
+			if r.FormValue("token") != "" {
+				if r.FormValue("table") != "" && r.FormValue("insert") != "" {
+					table := r.FormValue("table")
+					dat := (r.FormValue("insert"))
+					splitDat := strings.Split(dat, "|")
+					finStringC := "("
+					finStringV := "("
+
+					for i := 0; i < len(splitDat); i++ {
+						if i < len(splitDat)-1 {
+							finStringC += strings.Split(splitDat[i], ",")[0] + ", "
+							finStringV += strings.Split(splitDat[i], ",")[1] + ", "
+						} else {
+							finStringC += strings.Split(splitDat[i], ",")[0] + ")"
+							finStringV += strings.Split(splitDat[i], ",")[1] + ")"
+						}
+
 					}
 
+					AddNew(table, finStringC, finStringV)
 				}
-
-				AddNew(table, finStringC, finStringV)
 			}
 		}
 
