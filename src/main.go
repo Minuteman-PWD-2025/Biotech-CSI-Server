@@ -125,6 +125,8 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 		log("recieved get request")
 		if r.FormValue("token") != "" {
 			if r.FormValue("table") != "" {
+				// https://gist.github.com/SchumacherFM/69a167bec7dea644a20e
+
 				rows := GetTable(r.FormValue("table"))
 				cols, _ := rows.Columns()
 				leng := len(cols)
@@ -137,7 +139,8 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 				for rows.Next() {
 					rows.Scan(datas...) // unwrap array of references and pass through
 					for _, data := range datas {
-						fmt.Println(&data)
+						var value any = &data
+						fmt.Println(value)
 					}
 				}
 
