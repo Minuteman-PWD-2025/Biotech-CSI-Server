@@ -1,0 +1,5 @@
+to restore:
+copy the one from the repo to /tmp/[name].sql
+chown it to postgres
+sudo -u postgres psql -U postgres -d postgres < /tmp/test-database.sql
+
