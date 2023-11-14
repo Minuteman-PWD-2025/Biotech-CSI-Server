@@ -129,54 +129,20 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 				// names := make([]string, 0)
 				cols, _ := rows.Columns()
 				leng := len(cols)
-				datas := make([]any, leng)
-				// for rows.Next() {
-				// 	quick:= make([]string, leng)
+				datas := make([]any, leng) // array of references
 
-				// 	if err := rows.Scan(&quick); err != nil {
-				// 		panic(err)
-				// 	}
-				// 	names = append(names, name)
-				// }
-				// // Check for errors from iterating over rows.
-				// if err := rows.Err(); err != nil {
-				// 	panic(err)
-				// }
-				// log("%s are %d years old", strings.Join(names, ", "), "4")
-				//#region Placeholder
+				for i := 0; i < leng; i++ {
+					datas[i] = new(string)
+				}
 
 				for rows.Next() {
-					rows.Scan(datas...)
+					rows.Scan(datas...) // unwrap array of references and pass through
 					for _, data := range datas {
-						fmt.Print(data)
+						fmt.Println(data)
 					}
 				}
 
 				http.ServeFile(w, r, "data.json")
-				//fmt.Print(rows)
-				//cols, _ := rows.Columns()
-
-				// leng := len(cols)
-				// //#region Placeholder
-				// var Datas [2000]string
-				// var name string
-				// var FinString string
-				// //var ph string
-				// i := 0
-				// for rows.Next() {
-				// 	for j := 0; j < leng; j++ {
-				// 		rows.Scan(&Datas[i+j], &name)
-				// 		//fmt.Printf("ID: %s\nName: %s\n\n", user_id, name)
-				// 		FinString += Datas[i+j] + "\n"
-
-				// 	}
-				// 	i++
-
-				// }
-				// fmt.Print(FinString)
-
-				//#endregion
-				//rows := GetTable(r.FormValue("table"))     //#region Placeholder     //cols, err := rows.Columns()     //if err != nil {     // panic(err)     //}     //leng := len(cols)     var Datas string //I hate this, there must be a better way     i := 0     var FinString string     for rows.Next() {      //for j := 0; j < leng; j++ {      rows.Scan(&Datas)      FinString += Datas + "\n"      //}       //FinString += Datas[i] + "\n"      i++     }     fmt.Print(FinString)      //#endregion
 			}
 		} else {
 			if r.FormValue("email") != "" && r.FormValue("password") != "" {
