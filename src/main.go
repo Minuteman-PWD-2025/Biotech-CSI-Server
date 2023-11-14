@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 )
 
 var users map[string]string
@@ -20,42 +21,83 @@ func main() {
 		"dledger":   "1234",
 	}
 
+	// starts new goroutine for func()
+	go func() {
+		var lastTime = time.Now()
+
+		for {
+			if time.Since(lastTime) >= time.Hour {
+				lastTime = time.Now()
+				log("invalid tokens removed")
+				// check for invalid tokens within SQL database
+			}
+		}
+	}()
+
+	// debug
+	go func() {
+		for {
+			fmt.Scanln()
+			fmt.Println(tokens)
+		}
+	}()
+
 	// Start the HTTP server on port 8080
-	fmt.Printf("Starting Server...\n")
+	log("Starting Server...")
 	http.HandleFunc("/api", getRoot)
 	http.ListenAndServe(":8080", nil)
 }
 
+// called when an application makes a request to server,
+// serves relevant files and makes relevant changes to data
 func getRoot(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
 	case "POST":
-		fmt.Println("recieved post request")
-		if r.FormValue("token") != "" {
-			if r.FormValue("table") != "" && r.FormValue("insert") != "" {
-				table := r.FormValue("table")
-				dat := (r.FormValue("insert"))
-				splitDat := strings.Split(dat, "|")
-				finStringC := "("
-				finStringV := "("
+		log("recieved post request")
 
-				for i := 0; i < len(splitDat); i++ {
-					if i < len(splitDat)-1 {
-						finStringC += strings.Split(splitDat[i], ",")[0] + ", "
-						finStringV += strings.Split(splitDat[i], ",")[1] + ", "
-					} else {
-						finStringC += strings.Split(splitDat[i], ",")[0] + ")"
-						finStringV += strings.Split(splitDat[i], ",")[1] + ")"
+		// if email and password provided in url query
+		if r.FormValue("email") != "" && r.FormValue("password") != "" {
+			// initialize email and password as query values
+			email := r.FormValue("email")
+			password := r.FormValue("password")
+
+			// initialize error for error handling
+			var err error
+
+			// validate login information, if valid update token array with new token
+			tokens, err = ValidateLogin(users, tokens, email, password)
+			if err != nil {
+				log("error logging in: " + err.Error())
+				return
+			}
+
+			if r.FormValue("token") != "" {
+				if r.FormValue("table") != "" && r.FormValue("insert") != "" {
+					table := r.FormValue("table")
+					dat := (r.FormValue("insert"))
+					splitDat := strings.Split(dat, "|")
+					finStringC := "("
+					finStringV := "("
+
+					for i := 0; i < len(splitDat); i++ {
+						if i < len(splitDat)-1 {
+							finStringC += strings.Split(splitDat[i], ",")[0] + ", "
+							finStringV += strings.Split(splitDat[i], ",")[1] + ", "
+						} else {
+							finStringC += strings.Split(splitDat[i], ",")[0] + ")"
+							finStringV += strings.Split(splitDat[i], ",")[1] + ")"
+						}
+
 					}
 
+					AddNew(table, finStringC, finStringV)
 				}
-
-				AddNew(table, finStringC, finStringV)
 			}
 		}
 
 	case "GET":
-		fmt.Println("recieved get request")
+		log("recieved get request")
 		if r.FormValue("token") != "" {
 			if r.FormValue("table") != "" {
 
