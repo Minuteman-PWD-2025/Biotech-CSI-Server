@@ -311,6 +311,7 @@ COPY public.people (id, name) FROM stdin;
 6	Drew
 7	Jun
 8	Patrick
+9	beingtwo
 \.
 
 
@@ -347,7 +348,7 @@ SELECT pg_catalog.setval('public.items_id_seq', 30, true);
 -- Name: people_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.people_id_seq', 8, true);
+SELECT pg_catalog.setval('public.people_id_seq', 9, true);
 
 
 --
