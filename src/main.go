@@ -10,7 +10,7 @@ var users map[string]string
 var tokens []string
 
 func main() {
-	testConnection()
+	EnableServer()
 
 	users = make(map[string]string)
 
@@ -27,7 +27,7 @@ func main() {
 }
 
 func getRoot(w http.ResponseWriter, r *http.Request) {
-	err, db := testConnection()
+
 	switch r.Method {
 	case "POST":
 		fmt.Println("recieved post request")
@@ -50,7 +50,7 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 
 				}
 
-				AddNew(table, db, finStringC, finStringV)
+				AddNew(table, finStringC, finStringV)
 			}
 		}
 
@@ -59,10 +59,7 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 		if r.FormValue("token") != "" {
 			if r.FormValue("table") != "" {
 
-				if err != nil {
-					panic(err)
-				}
-				rows := GetTable(r.FormValue("table"), db)
+				rows := GetTable(r.FormValue("table"))
 				//#region Placeholder
 				var user_id string
 				var name string
