@@ -126,19 +126,18 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 		if r.FormValue("token") != "" {
 			if r.FormValue("table") != "" {
 				rows := GetTable(r.FormValue("table"))
-				// names := make([]string, 0)
 				cols, _ := rows.Columns()
 				leng := len(cols)
 				datas := make([]any, leng) // array of references
 
 				for i := 0; i < leng; i++ {
-					datas[i] = new(string)
+					datas[i] = new(any)
 				}
 
 				for rows.Next() {
 					rows.Scan(datas...) // unwrap array of references and pass through
 					for _, data := range datas {
-						fmt.Println(data)
+						fmt.Println(&data)
 					}
 				}
 
