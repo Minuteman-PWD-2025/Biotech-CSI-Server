@@ -127,8 +127,9 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 			if r.FormValue("table") != "" {
 				rows := GetTable(r.FormValue("table"))
 				// names := make([]string, 0)
-				// cols, _ := rows.Columns()
-				// leng := len(cols)
+				cols, _ := rows.Columns()
+				leng := len(cols)
+				datas := make([]any, leng)
 				// for rows.Next() {
 				// 	quick:= make([]string, leng)
 
@@ -143,16 +144,14 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 				// }
 				// log("%s are %d years old", strings.Join(names, ", "), "4")
 				//#region Placeholder
-				var user_id string
-				var name string
-				var FinString string
 
 				for rows.Next() {
-					rows.Scan(&user_id, &name)
-					fmt.Printf("ID: %s\nName: %s\n\n", user_id, name)
-					FinString += "ID: " + user_id + "\nName: " + name + "\n"
+					rows.Scan(datas...)
+					for _, data := range datas {
+						fmt.Print(data)
+					}
 				}
-				//os.WriteFile("data", []byte(FinString), 0644)
+
 				http.ServeFile(w, r, "data.json")
 				//fmt.Print(rows)
 				//cols, _ := rows.Columns()
