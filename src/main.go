@@ -126,6 +126,7 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 		if r.FormValue("token") != "" {
 			if r.FormValue("table") != "" {
 				// https://gist.github.com/SchumacherFM/69a167bec7dea644a20e
+				// http://go-database-sql.org/varcols.html
 
 				rows := GetTable(r.FormValue("table"))
 				cols, _ := rows.Columns()
