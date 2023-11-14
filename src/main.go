@@ -96,8 +96,14 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 				}
 				fmt.Println("")
 			}
-		}
 
+		}
+	case "PUT":
+		update := r.FormValue("update")
+		indivUpdate := strings.Split(update, "|")
+		where := r.FormValue("where")
+		indivWhere := strings.Split(where, "|")
+		AlterThing(r.FormValue("table"), indivUpdate, indivWhere)
 		//Authentication
 
 	}

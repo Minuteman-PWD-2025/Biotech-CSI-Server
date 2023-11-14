@@ -2,7 +2,7 @@ package main
 
 import (
 	fmt "fmt"
-	"strconv"
+	"strings"
 
 	"database/sql"
 
@@ -66,7 +66,7 @@ func GetTable(WhichTable string) sql.Rows {
 	return *rows
 }
 func AddNew(WhichTable string, cols string, Data string) sql.Rows {
-	//validate that it doesnt already exist
+	//we need to fix this one to match later ones and use a for loop instead of messy formatting
 
 	rows, err := db.Query("INSERT INTO " + WhichTable + " " + cols + "\nVALUES " + Data)
 	if err != nil {
@@ -74,24 +74,15 @@ func AddNew(WhichTable string, cols string, Data string) sql.Rows {
 	}
 	return *rows
 }
-func GetId(WhichTable string) int {
-
-	validRow := false
-	i := 0
-	for {
-		i++
-
-		checkRows, err := db.Query("SELECT user_id FROM " + WhichTable + " t WHERE t.user_id = " + strconv.Itoa(i))
-		if err != nil {
-			panic(err)
-		}
-		cols, err := checkRows.Columns()
-		if len(cols) == 0 {
-			validRow = true
-		}
-		if validRow {
-			break
+func AlterThing(WhichTable string, allUpdates []string, allWheres []string) {
+	for i := 0; i < len(allUpdates); i++ {
+		splitInTwain := strings.Split(allUpdates[i], ",")
+		for i := 0; i < len(allWheres); i++ {
+			whereInTwain := strings.Split(allWheres[i], ",")
+			qStr := "UPDATE " + WhichTable + "\nSET " + splitInTwain[0] + "=" + splitInTwain[1] + "\nWHERE " + whereInTwain[0] + whereInTwain[1] + ";"
+			fmt.Println(qStr)
+			db.Query(qStr)
 		}
 	}
-	return i
+
 }
