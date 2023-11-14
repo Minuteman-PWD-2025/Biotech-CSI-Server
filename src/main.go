@@ -48,6 +48,30 @@ func main() {
 	http.ListenAndServe(":8080", nil)
 }
 
+// Helper function for GET request modularity
+func handleLoginRequest(r *http.Request) {
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+
+	var err error
+
+	fmt.Printf("tokens before login: %v\n", tokens)
+	fmt.Println(len(users), "Users are connected")
+	fmt.Printf("-------------------------------------\n")
+	for userEmail, userPassword := range users {
+		fmt.Printf("User: %s - Password: %s\n", userEmail, userPassword)
+	}
+	fmt.Printf("-------------------------------------\n")
+
+	tokens, err = ValidateLogin(users, tokens, email, password)
+	if err != nil {
+		fmt.Printf("error logging in: %s\n", err.Error())
+		return
+	}
+
+	fmt.Printf("tokens after login: %s\n", strings.Join(tokens, " "))
+}
+
 // called when an application makes a request to server,
 // serves relevant files and makes relevant changes to data
 func getRoot(w http.ResponseWriter, r *http.Request) {
@@ -100,45 +124,20 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 		log("recieved get request")
 		if r.FormValue("token") != "" {
 			if r.FormValue("table") != "" {
-
 				rows := GetTable(r.FormValue("table"))
 				//#region Placeholder
 				var user_id string
 				var name string
-
 				for rows.Next() {
 					rows.Scan(&user_id, &name)
 					fmt.Printf("ID: %s\nName: %s\n\n", user_id, name)
 				}
-
 				//#endregion
 			}
 		} else {
 			if r.FormValue("email") != "" && r.FormValue("password") != "" {
-				email := r.FormValue("email")
-				password := r.FormValue("password")
-
-				var err error
-
-				fmt.Print("tokens before login: ")
-				fmt.Println(tokens)
-
-				fmt.Print("users: ")
-				fmt.Println(users)
-
-				tokens, err = ValidateLogin(users, tokens, email, password)
-				if err != nil {
-					fmt.Println("error logging in: " + err.Error())
-					return
-				}
-
-				fmt.Print("tokens after login: ")
-				for i := 0; i < len(tokens); i++ {
-					fmt.Print(tokens[i] + " ")
-				}
-				fmt.Println("")
+				handleLoginRequest(r)
 			}
-
 		}
 	case "PUT":
 		update := r.FormValue("update")
