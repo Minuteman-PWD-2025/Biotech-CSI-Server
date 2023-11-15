@@ -14,14 +14,13 @@ var tokens []string
 
 func main() {
 	EnableServer()
-	fmt.Print("test")
 
 	users = make(map[string]string)
 
 	users = map[string]string{
-		"email":     "pass",
-		"ibroomell": "1234",
-		"dledger":   "1234",
+		"email":      "pass",
+		"ibroomell":  "1234",
+		"drewledger": "1624",
 	}
 
 	// starts new goroutine for func()
@@ -31,7 +30,7 @@ func main() {
 		for {
 			if time.Since(lastTime) >= time.Hour {
 				lastTime = time.Now()
-				log("invalid tokens removed")
+				log(true, "invalid tokens removed")
 				// check for invalid tokens within SQL database
 			}
 		}
@@ -46,7 +45,7 @@ func main() {
 	}()
 
 	// Start the HTTP server on port 8080
-	log("Starting Server...")
+	log(false, "Starting Server...")
 	http.HandleFunc("/api", getRoot)
 	http.ListenAndServe(":8080", nil)
 }
@@ -68,7 +67,7 @@ func handleLoginRequest(r *http.Request) {
 
 	tokens, err = ValidateLogin(users, tokens, email, password)
 	if err != nil {
-		fmt.Printf("error logging in: %s\n", err.Error())
+		log(true, "error logging in: %s\n", err.Error())
 		return
 	}
 
@@ -78,10 +77,9 @@ func handleLoginRequest(r *http.Request) {
 // called when an application makes a request to server,
 // serves relevant files and makes relevant changes to data
 func getRoot(w http.ResponseWriter, r *http.Request) {
-
 	switch r.Method {
 	case "POST":
-		log("recieved post request")
+		log(false, "recieved post request")
 
 		// if email and password provided in url query
 		if r.FormValue("email") != "" && r.FormValue("password") != "" {
@@ -95,7 +93,7 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 			// validate login information, if valid update token array with new token
 			tokens, err = ValidateLogin(users, tokens, email, password)
 			if err != nil {
-				log("error logging in: " + err.Error())
+				log(true, "error logging in: "+err.Error())
 				return
 			}
 
@@ -116,15 +114,13 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 						finStringC += strings.Split(splitDat[i], ",")[0] + ")"
 						finStringV += strings.Split(splitDat[i], ",")[1] + ")"
 					}
-
 				}
-
 				AddNew(table, finStringC, finStringV)
 			}
 		}
 
 	case "GET":
-		log("recieved get request")
+		log(true, "recieved get request")
 		if r.FormValue("token") != "" {
 			if r.FormValue("table") != "" {
 				returnedData := FormatTableToJSON(r.FormValue("table"))
@@ -141,15 +137,19 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 		indivUpdate := strings.Split(update, sep)
 		where := r.FormValue("where")
 		indivWhere := strings.Split(where, sep)
-		AlterThing(r.FormValue("table"), indivUpdate, indivWhere)
+		err := AlterThing(r.FormValue("table"), indivUpdate, indivWhere)
+		if err != nil {
+			log(true, "error in PUT request: "+err.Error())
+		}
 
-		//Authentication
+	//Authentication
 	case "DELETE":
 		table := r.FormValue("table")
 		del := r.FormValue("where")
 		indivDells := strings.Split(del, sep)
-		DeleteRow(table, indivDells)
-
+		err := DeleteRow(table, indivDells)
+		if err != nil {
+			log(true, "error in DELETE request: "+err.Error())
+		}
 	}
-
 }
