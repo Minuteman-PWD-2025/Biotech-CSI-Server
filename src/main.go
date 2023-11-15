@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -128,34 +127,7 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 		log("recieved get request")
 		if r.FormValue("token") != "" {
 			if r.FormValue("table") != "" {
-				// https://gist.github.com/SchumacherFM/69a167bec7dea644a20e
-				// http://go-database-sql.org/varcols.html
-
-				rows := GetTable(r.FormValue("table"))
-				cols, _ := rows.Columns()
-				leng := len(cols)
-				datas := make([]any, leng) // array of references
-				fmt.Print(rows.Columns())
-
-				for i := 0; i < leng; i++ {
-					datas[i] = new(any)
-				}
-
-				var finData []map[string]any
-
-				for rows.Next() {
-					tempData := map[string]any{}
-					rows.Scan(datas...) // unwrap array of references and pass through
-
-					for i, data := range datas {
-						tempData[cols[i]] = (*data.(*any))
-
-					}
-
-					finData = append(finData, tempData)
-
-				}
-				returnedData, _ := json.Marshal(finData)
+				returnedData := FormatTableToJSON(r.FormValue("table"))
 				os.WriteFile("data.json", returnedData, 0644)
 				http.ServeFile(w, r, "data.json")
 			}

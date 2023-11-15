@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	fmt "fmt"
 	"strings"
 
@@ -94,4 +95,32 @@ func DeleteRow(WhichTable string, allWheres []string) {
 		fmt.Print(qStr)
 		db.Query(qStr)
 	}
+}
+func FormatTableToJSON(table string) []byte {
+	rows := GetTable(table)
+	cols, _ := rows.Columns()
+	leng := len(cols)
+	datas := make([]any, leng) // array of references
+	fmt.Print(rows.Columns())
+
+	for i := 0; i < leng; i++ {
+		datas[i] = new(any)
+	}
+
+	var finData []map[string]any
+
+	for rows.Next() {
+		tempData := map[string]any{}
+		rows.Scan(datas...) // unwrap array of references and pass through
+
+		for i, data := range datas {
+			tempData[cols[i]] = (*data.(*any))
+
+		}
+
+		finData = append(finData, tempData)
+
+	}
+	returnedData, _ := json.Marshal(finData)
+	return returnedData
 }
