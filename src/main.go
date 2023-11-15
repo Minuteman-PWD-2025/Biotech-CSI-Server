@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 
 	"net/http"
 	"strings"
@@ -134,19 +136,27 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 				leng := len(cols)
 				datas := make([]any, leng) // array of references
 				fmt.Print(rows.Columns())
+
 				for i := 0; i < leng; i++ {
 					datas[i] = new(any)
 				}
 
-				for rows.Next() {
-					rows.Scan(datas...) // unwrap array of references and pass through
-					for _, data := range datas {
+				var finData []map[string]any
 
-						fmt.Println(*data.(*any))
+				for rows.Next() {
+					tempData := map[string]any{}
+					rows.Scan(datas...) // unwrap array of references and pass through
+
+					for i, data := range datas {
+						tempData[cols[i]] = (*data.(*any))
+
 					}
 
-				}
+					finData = append(finData, tempData)
 
+				}
+				returnedData, _ := json.Marshal(finData)
+				os.WriteFile("data.json", returnedData, 0644)
 				http.ServeFile(w, r, "data.json")
 			}
 		} else {

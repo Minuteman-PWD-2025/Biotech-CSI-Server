@@ -65,6 +65,7 @@ func GetTable(WhichTable string) sql.Rows {
 	}
 	return *rows
 }
+
 func AddNew(WhichTable string, cols string, Data string) sql.Rows {
 	//we need to fix this one to match later ones and use a for loop instead of messy formatting
 
