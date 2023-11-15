@@ -15,7 +15,6 @@ var tokens []string
 
 func main() {
 	EnableServer()
-	fmt.Print("test")
 
 	users = make(map[string]string)
 
@@ -32,7 +31,7 @@ func main() {
 		for {
 			if time.Since(lastTime) >= time.Hour {
 				lastTime = time.Now()
-				log("invalid tokens removed")
+				log(true, "invalid tokens removed")
 				// check for invalid tokens within SQL database
 			}
 		}
@@ -47,7 +46,7 @@ func main() {
 	}()
 
 	// Start the HTTP server on port 8080
-	log("Starting Server...")
+	log(false, "Starting Server...")
 	http.HandleFunc("/api", getRoot)
 	http.ListenAndServe(":8080", nil)
 }
@@ -69,7 +68,7 @@ func handleLoginRequest(r *http.Request) {
 
 	tokens, err = ValidateLogin(users, tokens, email, password)
 	if err != nil {
-		log("error logging in: %s\n", err.Error())
+		log(true, "error logging in: %s\n", err.Error())
 		return
 	}
 
@@ -81,7 +80,7 @@ func handleLoginRequest(r *http.Request) {
 func getRoot(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
-		log("recieved post request")
+		log(false, "recieved post request")
 
 		// if email and password provided in url query
 		if r.FormValue("email") != "" && r.FormValue("password") != "" {
@@ -95,7 +94,7 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 			// validate login information, if valid update token array with new token
 			tokens, err = ValidateLogin(users, tokens, email, password)
 			if err != nil {
-				log("error logging in: " + err.Error())
+				log(true, "error logging in: "+err.Error())
 				return
 			}
 
@@ -122,7 +121,7 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 		}
 
 	case "GET":
-		log("recieved get request")
+		log(true, "recieved get request")
 		if r.FormValue("token") != "" {
 			if r.FormValue("table") != "" {
 				// https://gist.github.com/SchumacherFM/69a167bec7dea644a20e
@@ -168,7 +167,7 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 		indivWhere := strings.Split(where, "|")
 		err := AlterThing(r.FormValue("table"), indivUpdate, indivWhere)
 		if err != nil {
-			log("error in PUT request: " + err.Error())
+			log(true, "error in PUT request: "+err.Error())
 		}
 
 	//Authentication
@@ -178,7 +177,7 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 		indivDells := strings.Split(del, "|")
 		err := DeleteRow(table, indivDells)
 		if err != nil {
-			log("error in DELETE request: " + err.Error())
+			log(true, "error in DELETE request: "+err.Error())
 		}
 	}
 }

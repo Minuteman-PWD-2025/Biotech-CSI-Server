@@ -21,7 +21,12 @@ const (
 var db *sql.DB
 
 func EnableServer() {
-	mydb := ConnectToTable()
+	mydb, err := ConnectToTable()
+	if err != nil {
+		log(true, err.Error())
+		//os.Exit(404)
+		return
+	}
 	db = mydb
 }
 
@@ -50,13 +55,19 @@ func EnableServer() {
 
 // return err, db
 // }
-func ConnectToTable() *sql.DB {
+func ConnectToTable() (*sql.DB, error) {
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", db_host, db_port, db_user, db_pass, db_name)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		panic(err)
+		return nil, errors.New("error opening database connection: " + err.Error())
 	}
-	return db
+
+	// check if the database is accessible
+	if err = db.Ping(); err != nil {
+		return nil, errors.New("error connecting to the database: " + err.Error())
+	}
+
+	return db, nil
 }
 func GetTable(WhichTable string) sql.Rows {
 
