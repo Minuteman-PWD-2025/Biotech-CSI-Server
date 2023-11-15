@@ -18,9 +18,9 @@ func main() {
 	users = make(map[string]string)
 
 	users = map[string]string{
-		"email":     "pass",
-		"ibroomell": "1234",
-		"dledger":   "1234",
+		"email":      "pass",
+		"ibroomell":  "1234",
+		"drewledger": "1624",
 	}
 
 	// starts new goroutine for func()
@@ -67,7 +67,7 @@ func handleLoginRequest(r *http.Request) {
 
 	tokens, err = ValidateLogin(users, tokens, email, password)
 	if err != nil {
-		fmt.Printf("error logging in: %s\n", err.Error())
+		log("error logging in: %s\n", err.Error())
 		return
 	}
 
@@ -77,7 +77,6 @@ func handleLoginRequest(r *http.Request) {
 // called when an application makes a request to server,
 // serves relevant files and makes relevant changes to data
 func getRoot(w http.ResponseWriter, r *http.Request) {
-
 	switch r.Method {
 	case "POST":
 		log("recieved post request")
@@ -115,9 +114,7 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 						finStringC += strings.Split(splitDat[i], ",")[0] + ")"
 						finStringV += strings.Split(splitDat[i], ",")[1] + ")"
 					}
-
 				}
-
 				AddNew(table, finStringC, finStringV)
 			}
 		}
@@ -144,9 +141,7 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 
 						fmt.Println(*data.(*any))
 					}
-
 				}
-
 				http.ServeFile(w, r, "data.json")
 			}
 		} else {
@@ -159,15 +154,19 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 		indivUpdate := strings.Split(update, "|")
 		where := r.FormValue("where")
 		indivWhere := strings.Split(where, "|")
-		AlterThing(r.FormValue("table"), indivUpdate, indivWhere)
+		err := AlterThing(r.FormValue("table"), indivUpdate, indivWhere)
+		if err != nil {
+			log("error in PUT request: " + err.Error())
+		}
 
-		//Authentication
+	//Authentication
 	case "DELETE":
 		table := r.FormValue("table")
 		del := r.FormValue("where")
 		indivDells := strings.Split(del, "|")
-		DeleteRow(table, indivDells)
-
+		err := DeleteRow(table, indivDells)
+		if err != nil {
+			log("error in DELETE request: " + err.Error())
+		}
 	}
-
 }

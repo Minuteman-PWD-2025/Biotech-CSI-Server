@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	fmt "fmt"
 	"strings"
 
@@ -47,8 +48,8 @@ func EnableServer() {
 // 	fmt.Printf("ID: %s\nName: %s\n\n", id, name)
 // }
 
-//return err, db
-//}
+// return err, db
+// }
 func ConnectToTable() *sql.DB {
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", db_host, db_port, db_user, db_pass, db_name)
 	db, err := sql.Open("postgres", connStr)
@@ -65,32 +66,39 @@ func GetTable(WhichTable string) sql.Rows {
 	}
 	return *rows
 }
-func AddNew(WhichTable string, cols string, Data string) sql.Rows {
+func AddNew(WhichTable string, cols string, Data string) (sql.Rows, error) {
 	//we need to fix this one to match later ones and use a for loop instead of messy formatting
 
 	rows, err := db.Query("INSERT INTO " + WhichTable + " " + cols + "\nVALUES " + Data)
 	if err != nil {
-		panic(err)
+		err = errors.New("error inserting data: " + err.Error())
 	}
-	return *rows
+	return *rows, err
 }
-func AlterThing(WhichTable string, allUpdates []string, allWheres []string) {
+func AlterThing(WhichTable string, allUpdates []string, allWheres []string) error {
 	for i := 0; i < len(allUpdates); i++ {
 		splitInTwain := strings.Split(allUpdates[i], ",")
-		for i := 0; i < len(allWheres); i++ {
-			whereInTwain := strings.Split(allWheres[i], ",")
+		for j := 0; j < len(allWheres); j++ {
+			whereInTwain := strings.Split(allWheres[j], ",")
 			qStr := "UPDATE " + WhichTable + "\nSET " + splitInTwain[0] + "=" + splitInTwain[1] + "\nWHERE " + whereInTwain[0] + whereInTwain[1] + ";"
 			fmt.Println(qStr)
-			db.Query(qStr)
+			_, err := db.Query(qStr)
+			if err != nil {
+				return errors.New("error altering thing: " + err.Error())
+			}
 		}
 	}
-
+	return nil
 }
-func DeleteRow(WhichTable string, allWheres []string) {
+func DeleteRow(WhichTable string, allWheres []string) error {
 	for i := 0; i < len(allWheres); i++ {
 		splitInTwain := strings.Split(allWheres[i], ",")
 		qStr := "DELETE FROM " + WhichTable + "\nWHERE " + splitInTwain[0] + splitInTwain[1] + ";"
 		fmt.Print(qStr)
-		db.Query(qStr)
+		_, err := db.Query(qStr)
+		if err != nil {
+			return errors.New("error deleting data: " + err.Error())
+		}
 	}
+	return nil
 }
