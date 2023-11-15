@@ -16,6 +16,7 @@ const (
 	db_pass = "admin"
 	db_host = "127.0.0.1"
 	db_port = "5432"
+	sep     = "|"
 )
 
 var db *sql.DB
@@ -58,19 +59,25 @@ func ConnectToTable() *sql.DB {
 	}
 	return db
 }
-func GetTable(WhichTable string) sql.Rows {
+func GetTable(table string) sql.Rows {
 
-	rows, err := db.Query("SELECT * FROM " + WhichTable + ";")
+	rows, err := db.Query("SELECT * FROM " + RemSpaces(table) + ";")
 	if err != nil {
 		panic(err)
 	}
 	return *rows
 }
 
-func AddNew(WhichTable string, cols string, Data string) sql.Rows {
+//Converts an input to the first thing, removing stuff after spaces, to try and prevent SQL injections
+func RemSpaces(query string) string {
+	splitString := strings.Split(query, " ")
+	return splitString[0]
+}
+
+func AddNew(table string, cols string, Data string) sql.Rows {
 	//we need to fix this one to match later ones and use a for loop instead of messy formatting
 
-	rows, err := db.Query("INSERT INTO " + WhichTable + " " + cols + "\nVALUES " + Data)
+	rows, err := db.Query("INSERT INTO " + table + " " + cols + "\nVALUES " + Data)
 	if err != nil {
 		panic(err)
 	}
@@ -83,7 +90,11 @@ func AlterThing(WhichTable string, allUpdates []string, allWheres []string) {
 			whereInTwain := strings.Split(allWheres[i], ",")
 			qStr := "UPDATE " + WhichTable + "\nSET " + splitInTwain[0] + "=" + splitInTwain[1] + "\nWHERE " + whereInTwain[0] + whereInTwain[1] + ";"
 			fmt.Println(qStr)
-			db.Query(qStr)
+			_, err := db.Query(qStr)
+			if err != nil {
+				panic(err)
+			}
+
 		}
 	}
 
