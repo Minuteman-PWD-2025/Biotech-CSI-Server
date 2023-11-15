@@ -13,6 +13,7 @@ var tokens []string
 
 func main() {
 	EnableServer()
+	fmt.Print("test")
 
 	users = make(map[string]string)
 
@@ -130,16 +131,18 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 				cols, _ := rows.Columns()
 				leng := len(cols)
 				datas := make([]any, leng) // array of references
-
+				fmt.Print(rows.Columns())
 				for i := 0; i < leng; i++ {
-					datas[i] = new(string)
+					datas[i] = new(any)
 				}
 
 				for rows.Next() {
 					rows.Scan(datas...) // unwrap array of references and pass through
 					for _, data := range datas {
-						fmt.Println(data)
+
+						fmt.Println(*data.(*any))
 					}
+
 				}
 
 				http.ServeFile(w, r, "data.json")
