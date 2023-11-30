@@ -14,9 +14,9 @@ var users map[string]string
 var tokens []string
 
 type SendBack struct {
-	data    string
-	code    int
-	message string
+	Data    string
+	Code    int
+	Message string
 }
 
 func main() {
@@ -134,16 +134,16 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 				retData := new(SendBack)
 				where := r.FormValue("where")
 
-				retData.data = string(FormatTableToJSON(r.FormValue("table"), where))
-				retData.code = 0
-				retData.message = "Test"
+				retData.Data = string(FormatTableToJSON(r.FormValue("table"), where))
+				retData.Code = 0
+				retData.Message = "Test"
+
 				finData, err := json.Marshal(retData)
-				fmt.Println(retData.data)
-				fmt.Println(retData.code)
-				fmt.Println(retData.message)
 				if err != nil {
 					panic(err)
 				}
+				fmt.Printf("%s", finData)
+
 				os.WriteFile("data.json", finData, 0644)
 				http.ServeFile(w, r, "data.json")
 			}
