@@ -71,9 +71,14 @@ func ConnectToTable() (*sql.DB, error) {
 
 	return db, nil
 }
-func GetTable(table string) sql.Rows {
+func GetTable(table string, where string) sql.Rows {
 
 	rows, err := db.Query("SELECT * FROM " + RemSpaces(table) + ";")
+	if where != "" {
+		indivwhere := strings.Split(where, ",")
+		rows, err = db.Query("SELECT * FROM " + RemSpaces(table) + " WHERE " + indivwhere[0] + indivwhere[1])
+
+	}
 	if err != nil {
 		panic(err)
 	}
@@ -122,8 +127,8 @@ func DeleteRow(WhichTable string, allWheres []string) error {
 	}
 	return nil
 }
-func FormatTableToJSON(table string) []byte {
-	rows := GetTable(table)
+func FormatTableToJSON(table string, where string) []byte {
+	rows := GetTable(table, where)
 	cols, _ := rows.Columns()
 	leng := len(cols)
 	datas := make([]any, leng) // array of references

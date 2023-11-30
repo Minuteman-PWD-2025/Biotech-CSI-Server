@@ -122,8 +122,11 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		log(true, "recieved get request")
 		if r.FormValue("token") != "" {
+
 			if r.FormValue("table") != "" {
-				returnedData := FormatTableToJSON(r.FormValue("table"))
+				where := r.FormValue("where")
+
+				returnedData := FormatTableToJSON(r.FormValue("table"), where)
 				os.WriteFile("data.json", returnedData, 0644)
 				http.ServeFile(w, r, "data.json")
 			}
