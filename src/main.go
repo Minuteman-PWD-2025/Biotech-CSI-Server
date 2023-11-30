@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -11,6 +12,12 @@ import (
 
 var users map[string]string
 var tokens []string
+
+type SendBack struct {
+	data    string
+	code    int
+	message string
+}
 
 func main() {
 	EnableServer()
@@ -124,10 +131,20 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 		if r.FormValue("token") != "" {
 
 			if r.FormValue("table") != "" {
+				retData := new(SendBack)
 				where := r.FormValue("where")
 
-				returnedData := FormatTableToJSON(r.FormValue("table"), where)
-				os.WriteFile("data.json", returnedData, 0644)
+				retData.data = string(FormatTableToJSON(r.FormValue("table"), where))
+				retData.code = 0
+				retData.message = "Test"
+				finData, err := json.Marshal(retData)
+				fmt.Println(retData.data)
+				fmt.Println(retData.code)
+				fmt.Println(retData.message)
+				if err != nil {
+					panic(err)
+				}
+				os.WriteFile("data.json", finData, 0644)
 				http.ServeFile(w, r, "data.json")
 			}
 		} else {
