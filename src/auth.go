@@ -6,6 +6,9 @@ import (
 	"errors"
 )
 
+// ValidateLogin validates the login credentials of a user.
+// It takes a map of users, a slice of tokens, an email, and a password as input.
+// It returns the updated slice of tokens and an error if the login is invalid.
 func ValidateLogin(users map[string]string, tokens []string, email string, pass string) ([]string, error) {
 	_, exists := users[email]
 	if !exists {
@@ -22,6 +25,9 @@ func ValidateLogin(users map[string]string, tokens []string, email string, pass 
 	return tokens, nil
 }
 
+// GenerateToken generates a unique token of the specified length.
+// It takes the length of the token and a slice of existing tokens as input.
+// It returns the generated token and an error if the token generation fails.
 func GenerateToken(length int, tokens []string) (string, error) {
 	// initialize new string variable for new token
 	var token string

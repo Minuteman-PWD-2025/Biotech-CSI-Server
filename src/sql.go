@@ -1,12 +1,11 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
-	fmt "fmt"
+	"fmt"
 	"strings"
-
-	"database/sql"
 
 	_ "github.com/lib/pq"
 )
@@ -22,6 +21,7 @@ const (
 
 var db *sql.DB
 
+// EnableServer connects to the database and sets the global db variable.
 func EnableServer() {
 	mydb, err := ConnectToTable()
 	if err != nil {
@@ -32,31 +32,7 @@ func EnableServer() {
 	db = mydb
 }
 
-//func testConnection() (error, *sql.DB) {
-// fmt.Printf("Testing Connection to Database...\n")
-// connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", db_host, db_port, db_user, db_pass, db_name)
-// db, err := sql.Open("postgres", connStr)
-// if err != nil {
-// 	return err, nil
-// }
-
-//defer db.Close()
-
-// rows, err := db.Query("SELECT * FROM people;")
-
-// if err != nil {
-// 	panic(err)
-// }
-
-// var id string
-// var name string
-// for rows.Next() {
-// 	rows.Scan(&id, &name)
-// 	fmt.Printf("ID: %s\nName: %s\n\n", id, name)
-// }
-
-// return err, db
-// }
+// ConnectToTable establishes a connection to the database and returns the *sql.DB object.
 func ConnectToTable() (*sql.DB, error) {
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", db_host, db_port, db_user, db_pass, db_name)
 	db, err := sql.Open("postgres", connStr)
@@ -71,13 +47,14 @@ func ConnectToTable() (*sql.DB, error) {
 
 	return db, nil
 }
-func GetTable(table string, where string) sql.Rows {
 
+// GetTable retrieves all rows from the specified table.
+// If a where clause is provided, it filters the rows based on the condition.
+func GetTable(table string, where string) sql.Rows {
 	rows, err := db.Query("SELECT * FROM " + RemSpaces(table) + ";")
 	if where != "" {
 		indivwhere := strings.Split(where, ",")
 		rows, err = db.Query("SELECT * FROM " + RemSpaces(table) + " WHERE " + indivwhere[0] + indivwhere[1])
-
 	}
 	if err != nil {
 		panic(err)
@@ -85,21 +62,26 @@ func GetTable(table string, where string) sql.Rows {
 	return *rows
 }
 
-//Converts an input to the first thing, removing stuff after spaces, to try and prevent SQL injections
+// RemSpaces removes spaces from the input query and returns the first part of the string.
+// This is done to prevent SQL injections.
 func RemSpaces(query string) string {
 	splitString := strings.Split(query, " ")
 	return splitString[0]
 }
 
+// AddNew inserts a new row into the specified table with the provided data.
+// It returns the inserted rows and any error encountered.
 func AddNew(table string, cols string, Data string) (sql.Rows, error) {
-	//we need to fix this one to match later ones and use a for loop instead of messy formatting
-
 	rows, err := db.Query("INSERT INTO " + table + " " + cols + "\nVALUES " + Data)
 	if err != nil {
 		err = errors.New("error inserting data: " + err.Error())
 	}
 	return *rows, err
 }
+
+// AlterThing updates the specified table with the given updates and conditions.
+// It iterates over the updates and conditions and performs the corresponding SQL update statements.
+// Returns an error if any update fails.
 func AlterThing(WhichTable string, allUpdates []string, allWheres []string) error {
 	for i := 0; i < len(allUpdates); i++ {
 		splitInTwain := strings.Split(allUpdates[i], ",")
@@ -115,6 +97,10 @@ func AlterThing(WhichTable string, allUpdates []string, allWheres []string) erro
 	}
 	return nil
 }
+
+// DeleteRow deletes rows from the specified table based on the given conditions.
+// It iterates over the conditions and performs the corresponding SQL delete statements.
+// Returns an error if any delete operation fails.
 func DeleteRow(WhichTable string, allWheres []string) error {
 	for i := 0; i < len(allWheres); i++ {
 		splitInTwain := strings.Split(allWheres[i], ",")
@@ -127,6 +113,10 @@ func DeleteRow(WhichTable string, allWheres []string) error {
 	}
 	return nil
 }
+
+// FormatTableToJSON retrieves rows from the specified table and converts them to JSON format.
+// If a where clause is provided it filters the rows based on the condition.
+// Returns the JSON data as a byte slice.
 func FormatTableToJSON(table string, where string) []byte {
 	rows := GetTable(table, where)
 	cols, _ := rows.Columns()
@@ -146,12 +136,11 @@ func FormatTableToJSON(table string, where string) []byte {
 
 		for i, data := range datas {
 			tempData[cols[i]] = (*data.(*any))
-
 		}
 
 		finData = append(finData, tempData)
-
 	}
+
 	returnedData, _ := json.Marshal(finData)
 	return returnedData
 }

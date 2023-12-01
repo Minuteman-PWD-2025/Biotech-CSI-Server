@@ -5,6 +5,9 @@ import (
 	"time"
 )
 
+// log is a function that prints log messages with timestamps.
+// If isError is true the log message is printed in red color.
+// If isError is false the log message is printed in white color.
 func log(isError bool, args ...string) {
 	output := ""
 	currentTime := time.Now()
