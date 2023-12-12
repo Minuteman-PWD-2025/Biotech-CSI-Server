@@ -30,6 +30,7 @@ func EnableServer() {
 		return
 	}
 	db = mydb
+
 }
 
 //func testConnection() (error, *sql.DB) {

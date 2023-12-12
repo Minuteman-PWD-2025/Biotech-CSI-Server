@@ -15,7 +15,6 @@ var tokens []string
 
 type SendBack struct {
 	Data    string
-	Code    int
 	Message string
 }
 
@@ -84,6 +83,7 @@ func handleLoginRequest(r *http.Request) {
 // called when an application makes a request to server,
 // serves relevant files and makes relevant changes to data
 func getRoot(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	switch r.Method {
 	case "POST":
 		log(false, "recieved post request")
@@ -135,7 +135,7 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 				where := r.FormValue("where")
 
 				retData.Data = string(FormatTableToJSON(r.FormValue("table"), where))
-				retData.Code = 0
+
 				retData.Message = "Test"
 
 				finData, err := json.Marshal(retData)
