@@ -6,20 +6,20 @@ import (
 	"errors"
 )
 
-func ValidateLogin(users map[string]string, tokens []string, email string, pass string) ([]string, error) {
+func ValidateLogin(users map[string]string, tokens []string, email string, pass string) ([]string, string, error) {
 	_, exists := users[email]
 	if !exists {
-		return tokens, errors.New("invalid login")
+		return tokens, "Error Returned", errors.New("invalid login")
 	}
 
 	newToken, err := GenerateToken(20, tokens)
 	if err != nil {
-		return tokens, errors.New("error generating token: " + err.Error())
+		return tokens, "Error Returned", errors.New("error generating token: " + err.Error())
 	}
 
 	tokens = append(tokens, newToken)
 
-	return tokens, nil
+	return tokens, newToken, nil
 }
 
 func GenerateToken(length int, tokens []string) (string, error) {

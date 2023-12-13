@@ -12,6 +12,7 @@ import (
 
 var users map[string]string
 var tokens []string
+var MyToken string
 
 type SendBack struct {
 	Data    string
@@ -57,7 +58,7 @@ func main() {
 }
 
 // Helper function for GET request modularity
-func handleLoginRequest(r *http.Request) {
+func handleLoginRequest(r *http.Request, w http.ResponseWriter) {
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 
@@ -71,11 +72,19 @@ func handleLoginRequest(r *http.Request) {
 	}
 	fmt.Printf("-------------------------------------\n")
 
-	tokens, err = ValidateLogin(users, tokens, email, password)
+	tokens, MyToken, err = ValidateLogin(users, tokens, email, password)
 	if err != nil {
 		log(true, "error logging in: %s\n", err.Error())
 		return
 	}
+	Back := new(SendBack)
+	Back.Data = MyToken //Generate token here
+	Back.Message = "Here is token"
+	fmt.Print(Back)
+	Squish, _ := json.Marshal(Back)
+	fmt.Print(Squish)
+	os.WriteFile("data.json", Squish, 0644)
+	http.ServeFile(w, r, "data.json")
 
 	fmt.Printf("tokens after login: %s\n", strings.Join(tokens, " "))
 }
@@ -91,14 +100,12 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 		// if email and password provided in url query
 		if r.FormValue("email") != "" && r.FormValue("password") != "" {
 			// initialize email and password as query values
-			email := r.FormValue("email")
-			password := r.FormValue("password")
 
 			// initialize error for error handling
 			var err error
 
 			// validate login information, if valid update token array with new token
-			tokens, err = ValidateLogin(users, tokens, email, password)
+			handleLoginRequest(r, w)
 			if err != nil {
 				log(true, "error logging in: "+err.Error())
 				return
@@ -106,70 +113,100 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 
 		}
 		if r.FormValue("token") != "" {
-			if r.FormValue("table") != "" && r.FormValue("insert") != "" {
-				table := r.FormValue("table")
-				dat := (r.FormValue("insert"))
-				splitDat := strings.Split(dat, sep)
-				finStringC := "("
-				finStringV := "("
+			if ItemInArray(tokens, r.FormValue("token")) {
+				if r.FormValue("table") != "" && r.FormValue("insert") != "" {
+					table := r.FormValue("table")
+					dat := (r.FormValue("insert"))
+					splitDat := strings.Split(dat, sep)
+					finStringC := "("
+					finStringV := "("
 
-				for i := 0; i < len(splitDat); i++ {
-					if i < len(splitDat)-1 {
-						finStringC += strings.Split(splitDat[i], ",")[0] + ", "
-						finStringV += strings.Split(splitDat[i], ",")[1] + ", "
-					} else {
-						finStringC += strings.Split(splitDat[i], ",")[0] + ")"
-						finStringV += strings.Split(splitDat[i], ",")[1] + ")"
+					for i := 0; i < len(splitDat); i++ {
+						if i < len(splitDat)-1 {
+							finStringC += strings.Split(splitDat[i], ",")[0] + ", "
+							finStringV += strings.Split(splitDat[i], ",")[1] + ", "
+						} else {
+							finStringC += strings.Split(splitDat[i], ",")[0] + ")"
+							finStringV += strings.Split(splitDat[i], ",")[1] + ")"
+						}
 					}
+					AddNew(table, finStringC, finStringV)
 				}
-				AddNew(table, finStringC, finStringV)
+			} else {
+				fmt.Print("Invalid token!")
 			}
+
 		}
 
 	case "GET":
 		log(true, "recieved get request")
 		if r.FormValue("token") != "" {
 
-			if r.FormValue("table") != "" {
-				retData := new(SendBack)
-				where := r.FormValue("where")
+			if ItemInArray(tokens, r.FormValue("token")) {
 
-				retData.Data = string(FormatTableToJSON(r.FormValue("table"), where))
+				if r.FormValue("table") != "" {
+					retData := new(SendBack)
+					where := r.FormValue("where")
 
-				retData.Message = "Test"
+					retData.Data = string(FormatTableToJSON(r.FormValue("table"), where))
 
-				finData, err := json.Marshal(retData)
-				if err != nil {
-					panic(err)
+					retData.Message = "Test"
+
+					finData, err := json.Marshal(retData)
+					if err != nil {
+						panic(err)
+					}
+
+					os.WriteFile("data.json", finData, 0644)
+					http.ServeFile(w, r, "data.json")
 				}
-				fmt.Printf("%s", finData)
-
-				os.WriteFile("data.json", finData, 0644)
-				http.ServeFile(w, r, "data.json")
+			} else {
+				fmt.Print("Invalid token!")
 			}
 		} else {
 			if r.FormValue("email") != "" && r.FormValue("password") != "" {
-				handleLoginRequest(r)
+				handleLoginRequest(r, w)
 			}
 		}
 	case "PUT":
-		update := r.FormValue("update")
-		indivUpdate := strings.Split(update, sep)
-		where := r.FormValue("where")
-		indivWhere := strings.Split(where, sep)
-		err := AlterThing(r.FormValue("table"), indivUpdate, indivWhere)
-		if err != nil {
-			log(true, "error in PUT request: "+err.Error())
+		if r.FormValue("token") != "" {
+			if ItemInArray(tokens, r.FormValue("token")) {
+				update := r.FormValue("update")
+				indivUpdate := strings.Split(update, sep)
+				where := r.FormValue("where")
+				indivWhere := strings.Split(where, sep)
+				err := AlterThing(r.FormValue("table"), indivUpdate, indivWhere)
+				if err != nil {
+					log(true, "error in PUT request: "+err.Error())
+				}
+			} else {
+				fmt.Print("Invalid token!")
+			}
+
 		}
 
 	//Authentication
 	case "DELETE":
-		table := r.FormValue("table")
-		del := r.FormValue("where")
-		indivDells := strings.Split(del, sep)
-		err := DeleteRow(table, indivDells)
-		if err != nil {
-			log(true, "error in DELETE request: "+err.Error())
+		if r.FormValue("token") != "" {
+			if ItemInArray(tokens, r.FormValue("token")) {
+				table := r.FormValue("table")
+				del := r.FormValue("where")
+				indivDells := strings.Split(del, sep)
+				err := DeleteRow(table, indivDells)
+				if err != nil {
+					log(true, "error in DELETE request: "+err.Error())
+				}
+			} else {
+				fmt.Print("Invalid token!")
+			}
 		}
 	}
+}
+func ItemInArray(Array []string, Value string) bool {
+	for i := 0; i < len(Array); i++ {
+		if Array[i] == Value {
+			return true
+		}
+	}
+	return false
 }
