@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 14.9 (Ubuntu 14.9-0ubuntu0.22.04.1)
--- Dumped by pg_dump version 14.9 (Ubuntu 14.9-0ubuntu0.22.04.1)
+-- Dumped from database version 14.10 (Ubuntu 14.10-0ubuntu0.22.04.1)
+-- Dumped by pg_dump version 14.10 (Ubuntu 14.10-0ubuntu0.22.04.1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -110,7 +110,8 @@ ALTER SEQUENCE public.checked_items_id_seq OWNED BY public.checked_items.id;
 
 CREATE TABLE public.items (
     id integer NOT NULL,
-    name character varying(50)
+    name character varying(50),
+    amount integer
 );
 
 
@@ -264,37 +265,37 @@ COPY public.checked_items (person_id, item_id, id) FROM stdin;
 -- Data for Name: items; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.items (id, name) FROM stdin;
-1	Cell Sample - Blue
-2	Cell Sample - Blue
-3	Cell Sample - Blue
-4	Cell Sample - Blue
-5	Cell Sample - Blue
-6	Cell Sample - Blue
-7	Cell Sample - Blue
-8	Cell Sample - Blue
-9	Cell Sample - Yellow
-10	Cell Sample - Yellow
-11	Cell Sample - Yellow
-12	Cell Sample - Yellow
-13	Cell Sample - Yellow
-14	Cell Sample - Yellow
-15	Cell Sample - Yellow
-16	Cell Sample - Yellow
-17	Cell Sample - Red
-18	Cell Sample - Red
-19	Cell Sample - Red
-20	Cell Sample - Red
-21	Cell Sample - Red
-22	Cell Sample - Red
-23	Cell Sample - Red
-24	Cell Sample - Red
-25	Cell Sample - Red
-26	Cell Sample - Red
-27	Cell Sample - Green
-28	Cell Sample - Green
-29	Cell Sample - Green
-30	Cell Sample - Green
+COPY public.items (id, name, amount) FROM stdin;
+1	Cell Sample - Blue	1
+2	Cell Sample - Blue	1
+3	Cell Sample - Blue	1
+4	Cell Sample - Blue	1
+5	Cell Sample - Blue	1
+6	Cell Sample - Blue	1
+7	Cell Sample - Blue	1
+8	Cell Sample - Blue	1
+9	Cell Sample - Yellow	1
+10	Cell Sample - Yellow	1
+11	Cell Sample - Yellow	1
+12	Cell Sample - Yellow	1
+13	Cell Sample - Yellow	1
+14	Cell Sample - Yellow	1
+15	Cell Sample - Yellow	1
+16	Cell Sample - Yellow	1
+17	Cell Sample - Red	1
+18	Cell Sample - Red	1
+19	Cell Sample - Red	1
+20	Cell Sample - Red	1
+21	Cell Sample - Red	1
+22	Cell Sample - Red	1
+23	Cell Sample - Red	1
+24	Cell Sample - Red	1
+25	Cell Sample - Red	1
+26	Cell Sample - Red	1
+27	Cell Sample - Green	1
+28	Cell Sample - Green	1
+29	Cell Sample - Green	1
+30	Cell Sample - Green	1
 \.
 
 
@@ -303,15 +304,16 @@ COPY public.items (id, name) FROM stdin;
 --
 
 COPY public.people (id, name) FROM stdin;
-1	Ben
-2	Iain
-3	Cormac
-4	Andrew
-5	Robert
-6	Drew
-7	Jun
-8	Patrick
-9	beingtwo
+1	hello
+2	other
+3	other
+4	other
+5	the Fellow
+6	the Fellow
+7	the Fellow
+8	the Fellow
+9	the Fellow
+10	the Fellow
 \.
 
 
@@ -348,7 +350,7 @@ SELECT pg_catalog.setval('public.items_id_seq', 30, true);
 -- Name: people_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.people_id_seq', 9, true);
+SELECT pg_catalog.setval('public.people_id_seq', 10, true);
 
 
 --
@@ -410,4 +412,3 @@ ALTER TABLE ONLY public.checked_items
 --
 -- PostgreSQL database dump complete
 --
-
